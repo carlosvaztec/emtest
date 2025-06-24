@@ -1,5 +1,6 @@
 package com.cambra.emtestrunner
 
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 

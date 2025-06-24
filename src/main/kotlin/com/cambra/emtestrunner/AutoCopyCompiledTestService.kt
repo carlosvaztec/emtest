@@ -18,6 +18,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.messages.MessageBusConnection
 import java.io.File
 import java.nio.file.Paths
@@ -109,11 +110,8 @@ class TestClassTracker(private val project: Project) : Disposable {
 
 
                         if (psiFile != null) {
-                            // Simple test: if filename contains "Test", treat it as a test file
-                            val isTest = psiFile.name.contains("Test", ignoreCase = true) ||
-                                        psiFile.name.contains("Spec", ignoreCase = true)
-
-
+                            // Use proper test detection logic that checks for actual test methods
+                            val isTest = fileContainsTests(psiFile)
 
                             if (isTest) {
                                 // Find the primary class in the file
@@ -137,6 +135,7 @@ class TestClassTracker(private val project: Project) : Disposable {
                                     psiFile.name.endsWith(".scala") -> {
                                         // For Scala, try to find any class-like element
                                         val scalaClass = findScalaClassByName(psiFile, fileName)
+
                                         if (scalaClass != null) {
                                             setCurrentScalaClass(scalaClass)
                                             ApplicationManager.getApplication().invokeLater {
@@ -145,6 +144,16 @@ class TestClassTracker(private val project: Project) : Disposable {
                                                     "Auto-Track Success",
                                                     "Now tracking Scala test class: ${getElementName(scalaClass)}",
                                                     NotificationType.INFORMATION
+                                                )
+                                            }
+                                        } else {
+                                            // Show error message about Scala plugin requirement
+                                            ApplicationManager.getApplication().invokeLater {
+                                                showNotification(
+                                                    project,
+                                                    "Scala Plugin Required",
+                                                    "Cannot track Scala test class '$fileName'. The Scala plugin must be installed and enabled for Scala file support.",
+                                                    NotificationType.ERROR
                                                 )
                                             }
                                         }
@@ -187,6 +196,127 @@ class TestClassTracker(private val project: Project) : Disposable {
 
 
     /**
+     * Check if a file contains any test methods (Java or Scala)
+     */
+    private fun fileContainsTests(psiFile: PsiFile): Boolean {
+        // Check for Java test methods
+        val javaMethods = PsiTreeUtil.findChildrenOfType(psiFile, PsiMethod::class.java)
+        val hasJavaTests = javaMethods.any { isJavaTestMethod(it) }
+
+        if (hasJavaTests) return true
+
+        // For Scala files, check if Scala plugin is working properly
+        if (psiFile.name.endsWith(".scala")) {
+            // Check if this is a proper Scala PSI file
+            val isProperScalaFile = psiFile.javaClass.name.contains("scala", ignoreCase = true)
+
+            if (!isProperScalaFile) {
+                // Scala plugin is not working properly
+                ApplicationManager.getApplication().invokeLater {
+                    showNotification(
+                        project,
+                        "Scala Plugin Required",
+                        "Cannot detect Scala tests in ${psiFile.name}. The Scala plugin must be installed and enabled for Scala file support.",
+                        NotificationType.ERROR
+                    )
+                }
+                return false
+            }
+
+            // Check for Scala test methods using PSI
+            val scalaFunctions = findScalaFunctionsInFile(psiFile)
+            val hasScalaTests = scalaFunctions.any { isScalaTestMethod(it) }
+
+            return hasScalaTests
+        }
+
+        return false
+    }
+
+
+    /**
+     * Find all Scala functions in a file
+     */
+    private fun findScalaFunctionsInFile(psiFile: PsiFile): List<PsiElement> {
+        val scalaFunctions = mutableListOf<PsiElement>()
+
+        fun visitElement(element: PsiElement) {
+            if (isScalaFunction(element)) {
+                scalaFunctions.add(element)
+            }
+            for (child in element.children) {
+                visitElement(child)
+            }
+        }
+
+        visitElement(psiFile)
+        return scalaFunctions
+    }
+
+    /**
+     * Check if a Java method is a test method
+     */
+    private fun isJavaTestMethod(method: PsiMethod): Boolean {
+        return method.modifierList.annotations.any { annotation ->
+            val qualifiedName = annotation.qualifiedName
+            qualifiedName == "org.junit.Test" || // JUnit 4
+                    qualifiedName == "org.junit.jupiter.api.Test" || // JUnit 5
+                    qualifiedName == "org.testng.annotations.Test" // TestNG
+        }
+    }
+
+    /**
+     * Check if a Scala element is a test method
+     */
+    private fun isScalaTestMethod(element: PsiElement?): Boolean {
+        if (!isScalaFunction(element)) return false
+
+        try {
+            // Check method name for ScalaTest conventions
+            val methodName = getElementName(element) ?: return false
+            if (methodName.startsWith("test")) return true
+
+            // Check if containing class extends ScalaTest base classes
+            val containingClass = getScalaContainingClass(element)
+            val qualifiedName = getScalaQualifiedName(containingClass) ?: return false
+
+            return qualifiedName.contains("scalatest") ||
+                   qualifiedName.contains("FunSuite") ||
+                   qualifiedName.contains("FlatSpec") ||
+                   qualifiedName.contains("WordSpec") ||
+                   qualifiedName.contains("FeatureSpec")
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    /**
+     * Check if an element is a Scala function
+     */
+    private fun isScalaFunction(element: PsiElement?): Boolean {
+        if (element == null) return false
+        val className = element.javaClass.name
+        return className == "org.jetbrains.plugins.scala.lang.psi.api.statements.ScFunctionDefinition" ||
+                className == "org.jetbrains.plugins.scala.lang.psi.api.statements.ScFunction"
+    }
+
+    /**
+     * Get the containing Scala class for an element
+     */
+    private fun getScalaContainingClass(element: PsiElement?): PsiElement? {
+        var current = element?.parent
+        while (current != null) {
+            if (isScalaClass(current)) {
+                return current
+            }
+            current = current.parent
+        }
+        return null
+    }
+
+
+
+    /**
      * Finds a Scala class by name in a file
      */
     private fun findScalaClassByName(psiFile: PsiFile, className: String): PsiElement? {
@@ -206,9 +336,14 @@ class TestClassTracker(private val project: Project) : Disposable {
     private fun isScalaClass(element: PsiElement?): Boolean {
         if (element == null) return false
         val className = element.javaClass.name
+
+        // Check for both API interfaces and implementation classes
         return className == "org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScClass" ||
                 className == "org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScObject" ||
-                className == "org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScTrait"
+                className == "org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScTrait" ||
+                className == "org.jetbrains.plugins.scala.lang.psi.impl.toplevel.typedef.ScClassImpl" ||
+                className == "org.jetbrains.plugins.scala.lang.psi.impl.toplevel.typedef.ScObjectImpl" ||
+                className == "org.jetbrains.plugins.scala.lang.psi.impl.toplevel.typedef.ScTraitImpl"
     }
 
     fun copyCompiledClass() {
@@ -229,6 +364,19 @@ class TestClassTracker(private val project: Project) : Disposable {
 
                 // Now perform file system operations outside of PSI access
                 val compiledFilePath = buildCompiledClassPath(psiInfo)
+
+                if (compiledFilePath == null) {
+                    // Show error notification if compiled class not found
+                    ApplicationManager.getApplication().invokeLater {
+                        showNotification(
+                            project,
+                            "Copy Failed",
+                            "Compiled class file not found for '$className'. Make sure the project is compiled and check both target/classes and target/test-classes directories.",
+                            NotificationType.ERROR
+                        )
+                    }
+                    return@executeOnPooledThread
+                }
 
                 // Get the settings
                 val settings = com.intellij.openapi.application.ApplicationManager.getApplication()
@@ -307,24 +455,38 @@ class TestClassTracker(private val project: Project) : Disposable {
     }
 
     // Build compiled class path using PSI info and file system operations
-    private fun buildCompiledClassPath(psiInfo: PsiInfo): String {
-        // For Maven, we only want to check the target/test-classes directory
-        val mavenTestOutputDir = findBuildOutputDir(psiInfo.projectBasePath, "target/test-classes")
-            ?: return "Maven test-classes directory not found. Make sure this is a Maven project with compiled tests."
-
-        val packagePath = psiInfo.packageName.replace('.', java.io.File.separatorChar)
-
-        // For Scala classes, check both normal and $ versions
-        if (psiInfo.isScala) {
-            val classPath = "$mavenTestOutputDir${java.io.File.separator}$packagePath${java.io.File.separator}${psiInfo.className}.class"
-            val objectPath = "$mavenTestOutputDir${java.io.File.separator}$packagePath${java.io.File.separator}${psiInfo.className}$$.class"
-
-            // Return the path that exists, or the class path as default
-            return if (java.io.File(objectPath).exists()) objectPath else classPath
+    private fun buildCompiledClassPath(psiInfo: PsiInfo): String? {
+        var packagePath = psiInfo.packageName.replace('.', java.io.File.separatorChar)
+        if(packagePath.endsWith(java.io.File.separatorChar)) {
+            packagePath = packagePath.substring(0, packagePath.length - 1)
         }
 
-        // For Java classes, just return the normal path
-        return "$mavenTestOutputDir${java.io.File.separator}$packagePath${java.io.File.separator}${psiInfo.className}.class"
+        // Check both test-classes and classes directories
+        val possibleDirs = listOf(
+            findBuildOutputDir(psiInfo.projectBasePath, "target/test-classes"),
+            findBuildOutputDir(psiInfo.projectBasePath, "target/classes")
+        ).filterNotNull()
+
+        if (possibleDirs.isEmpty()) {
+            return null // Will trigger error notification
+        }
+
+        for (outputDir in possibleDirs) {
+            // For Scala classes, check both normal and $ versions
+            if (psiInfo.isScala) {
+                val classPath = "$outputDir${java.io.File.separator}$packagePath${java.io.File.separator}${psiInfo.className}.class"
+                val objectPath = "$outputDir${java.io.File.separator}$packagePath${java.io.File.separator}${psiInfo.className}$$.class"
+
+                if (java.io.File(objectPath).exists()) return objectPath
+                if (java.io.File(classPath).exists()) return classPath
+            } else {
+                // For Java classes
+                val classPath = "$outputDir${java.io.File.separator}$packagePath${java.io.File.separator}${psiInfo.className}.class"
+                if (java.io.File(classPath).exists()) return classPath
+            }
+        }
+
+        return null // No compiled class found
     }
 
     private fun getCompiledPathForClass(psiClass: PsiClass): String {
