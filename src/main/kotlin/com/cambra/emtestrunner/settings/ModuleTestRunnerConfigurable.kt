@@ -31,7 +31,7 @@ class TestRunnerConfigurable : Configurable {
                settingsComponent?.removePackagePrefixText != settings.removePackagePrefix ||
                settingsComponent?.namespaceText != settings.namespace ||
                settingsComponent?.testModuleNameText != settings.testModuleName ||
-               settingsComponent?.enableAutoCopyChecked != settings.enableAutoCopy ||
+               settingsComponent?.enableHotDeployChecked != settings.enableHotDeploy ||
                settingsComponent?.enableDebugNotificationsChecked != settings.enableDebugNotifications
     }
     
@@ -47,7 +47,7 @@ class TestRunnerConfigurable : Configurable {
             settings.removePackagePrefix = it.removePackagePrefixText
             settings.namespace = it.namespaceText
             settings.testModuleName = it.testModuleNameText
-            settings.enableAutoCopy = it.enableAutoCopyChecked
+            settings.enableHotDeploy = it.enableHotDeployChecked
             settings.enableDebugNotifications = it.enableDebugNotificationsChecked
         }
     }
@@ -64,7 +64,7 @@ class TestRunnerConfigurable : Configurable {
             it.removePackagePrefixText = settings.removePackagePrefix
             it.namespaceText = settings.namespace
             it.testModuleNameText = settings.testModuleName
-            it.enableAutoCopyChecked = settings.enableAutoCopy
+            it.enableHotDeployChecked = settings.enableHotDeploy
             it.enableDebugNotificationsChecked = settings.enableDebugNotifications
         }
     }
@@ -85,7 +85,7 @@ class TestRunnerSettingsComponent {
     private var removePackagePrefixField: Cell<com.intellij.ui.components.JBTextField>? = null
     private var namespaceField: Cell<com.intellij.ui.components.JBTextField>? = null
     private var testModuleNameField: Cell<com.intellij.ui.components.JBTextField>? = null
-    private var enableAutoCopyField: Cell<com.intellij.ui.components.JBCheckBox>? = null
+    private var enableHotDeployField: Cell<com.intellij.ui.components.JBCheckBox>? = null
     private var enableDebugNotificationsField: Cell<com.intellij.ui.components.JBCheckBox>? = null
 
     var methodCommandText: String
@@ -124,9 +124,9 @@ class TestRunnerSettingsComponent {
         get() = testModuleNameField?.component?.text ?: ""
         set(value) { testModuleNameField?.component?.text = value }
 
-    var enableAutoCopyChecked: Boolean
-        get() = enableAutoCopyField?.component?.isSelected ?: true
-        set(value) { enableAutoCopyField?.component?.isSelected = value }
+    var enableHotDeployChecked: Boolean
+        get() = enableHotDeployField?.component?.isSelected ?: true
+        set(value) { enableHotDeployField?.component?.isSelected = value }
 
     var enableDebugNotificationsChecked: Boolean
         get() = enableDebugNotificationsField?.component?.isSelected ?: false
@@ -201,7 +201,7 @@ class TestRunnerSettingsComponent {
                 }
 
                 row {
-                    enableAutoCopyField = checkBox("Enable Auto-Copy")
+                    enableHotDeployField = checkBox("Enable Hot Deploy")
                         .comment("Automatically track the current class being edited and copy compiled classes after successful compilation")
                 }
 

@@ -23,7 +23,7 @@ class ModuleTestRunnerSettings : PersistentStateComponent<ModuleTestRunnerSettin
     var removePackagePrefix: String = ""
     var namespace: String = ""
     var testModuleName: String = ""
-    var enableAutoCopy: Boolean = true
+    var enableHotDeploy: Boolean = true
     var enableDebugNotifications: Boolean = false
 
     override fun getState(): ModuleTestRunnerSettings = this

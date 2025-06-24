@@ -39,7 +39,7 @@ class TestClassTracker(private val project: Project) : Disposable {
         messageBusConnection?.subscribe(CompilerTopics.COMPILATION_STATUS, object : CompilationStatusListener {
             override fun compilationFinished(aborted: Boolean, errors: Int, warnings: Int, context: CompileContext) {
                 val settings = com.cambra.emtestrunner.settings.ModuleTestRunnerSettings.getInstance()
-                if (settings.enableAutoCopy && !aborted && errors == 0 && (currentTestClass != null || currentScalaElement != null)) {
+                if (settings.enableHotDeploy && !aborted && errors == 0 && (currentTestClass != null || currentScalaElement != null)) {
                     // Compilation successful, copy the compiled class
                     copyCompiledClass()
                 }
@@ -89,9 +89,9 @@ class TestClassTracker(private val project: Project) : Disposable {
      * Automatically updates the current test class based on the currently active editor
      */
     private fun updateCurrentTestClassFromEditor() {
-        // Check if auto-copy is enabled first
+        // Check if hot deploy is enabled first
         val settings = com.cambra.emtestrunner.settings.ModuleTestRunnerSettings.getInstance()
-        if (!settings.enableAutoCopy) {
+        if (!settings.enableHotDeploy) {
             clearCurrentTestClass()
             return
         }
@@ -128,7 +128,7 @@ class TestClassTracker(private val project: Project) : Disposable {
                                                 ApplicationManager.getApplication().invokeLater {
                                                     showNotification(
                                                         project,
-                                                        "Debug: Auto-Track Success",
+                                                        "Debug: Hot Deploy Track Success",
                                                         "Now tracking Java test class: ${primaryClass.name}",
                                                         NotificationType.INFORMATION
                                                     )
@@ -147,7 +147,7 @@ class TestClassTracker(private val project: Project) : Disposable {
                                                 ApplicationManager.getApplication().invokeLater {
                                                     showNotification(
                                                         project,
-                                                        "Debug: Auto-Track Success",
+                                                        "Debug: Hot Deploy Track Success",
                                                         "Now tracking Scala test class: ${getElementName(scalaClass)}",
                                                         NotificationType.INFORMATION
                                                     )
