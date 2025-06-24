@@ -48,7 +48,6 @@ gradle-app.setting
 .idea/shelf/
 .idea/caches/
 .idea/kotlinc.xml
-.idea/AugmentWebviewStateStore.xml
 *.iws
 *.iml
 *.ipr
