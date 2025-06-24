@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.cambra"
-version = "1.3.3-SNAPSHOT"
+version = "1.4.1-SNAPSHOT"
 
 repositories {
     mavenCentral()

@@ -48,24 +48,22 @@ class ModuleTestRunnerSettings : PersistentStateComponent<ModuleTestRunnerSettin
             .replace("{NAMESPACE}", namespace)
     }
 
-    fun buildClassCommand(className: String): String {
-        val processedClassName = removePrefix(className)
+    fun buildClassCommand(fullClassName: String): String {
+        val processedClassName = removePrefix(fullClassName)
         return buildRunClassCommand
             .replace("{CLASS_NAME}", processedClassName)
             .replace("{NAMESPACE}", namespace)
     }
 
     fun buildFastRunMethodCommand(fullMethodName: String): String {
-        val processedMethodName = removePrefix(fullMethodName)
         return runMethodCommand
-            .replace("{METHOD_NAME}", processedMethodName)
+            .replace("{METHOD_NAME}", fullMethodName)
             .replace("{NAMESPACE}", namespace)
     }
 
-    fun buildFastRunClassCommand(className: String): String {
-        val processedClassName = removePrefix(className)
+    fun buildFastRunClassCommand(fullClassName: String): String {
         return runClassCommand
-            .replace("{CLASS_NAME}", processedClassName)
+            .replace("{CLASS_NAME}", fullClassName)
             .replace("{NAMESPACE}", namespace)
     }
 
