@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<idea-plugin>
+    <id>com.cambra.emtestrunner</id>
+    <name>Module Test Runner</name>
+    <version>1.0.0</version>
+    <vendor email="your.email@example.com" url="https://github.com/yourusername">Your Name</vendor>
+    
+    <description><![CDATA[
+        <p>A configurable test runner plugin for IntelliJ IDEA that allows you to run custom commands for Java and Scala test methods and classes.</p>
+
+        <h3>Features:</h3>
+        <ul>
+            <li>Right-click on test methods or classes to run custom commands</li>
+            <li>Support for both Java and Scala test frameworks</li>
+            <li>Configurable command templates with placeholders</li>
+            <li>Package prefix removal for cleaner command names</li>
+            <li>Support for JUnit 4, JUnit 5, TestNG, and ScalaTest</li>
+            <li>Commands executed in integrated terminal</li>
+            <li><strong>Automatic test class tracking:</strong> Automatically tracks the current class being edited for auto-copy features</li>
+        </ul>
+
+        <h3>Supported Languages:</h3>
+        <ul>
+            <li><strong>Java:</strong> JUnit 4, JUnit 5, TestNG</li>
+            <li><strong>Scala:</strong> ScalaTest (FunSuite, FlatSpec, WordSpec, FeatureSpec), JUnit</li>
+        </ul>
+
+        <h3>Usage:</h3>
+        <ol>
+            <li>Configure commands in Settings → Tools → Module Test Runner</li>
+            <li>Use {METHOD_NAME} and {CLASS_NAME} placeholders in your commands</li>
+            <li>Right-click on test methods or classes to execute</li>
+        </ol>
+
+        <p>Perfect for Maven, Gradle, SBT, or custom test execution workflows.</p>
+    ]]></description>
+    
+    <change-notes><![CDATA[
+        <h3>Version 1.0.0</h3>
+        <ul>
+            <li>Initial release</li>
+            <li>Configurable command templates</li>
+            <li>Package prefix removal feature</li>
+            <li>Support for test methods and classes</li>
+        </ul>
+    ]]></change-notes>
+    
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.plugins.terminal</depends>
+    <depends optional="true" config-file="scala-support.xml">org.intellij.scala</depends>
+    <idea-version since-build="231" until-build="241.*"/>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="PluginDebug" displayType="BALLOON"/>
+        <applicationConfigurable
+            parentId="tools"
+            instance="com.cambra.emtestrunner.settings.TestRunnerConfigurable"
+            id="com.cambra.emtestrunner.settings.TestRunnerConfigurable"
+            displayName="Module Test Runner"/>
+        <applicationService serviceImplementation="com.cambra.emtestrunner.settings.ModuleTestRunnerSettings"/>
+        <postStartupActivity implementation="com.cambra.emtestrunner.PluginStartupActivity"/>
+    </extensions>
+
+    <actions>
+        <action id="com.cambra.emtestrunner.RunModuleTestAction"
+                class="com.cambra.emtestrunner.RunModuleTestAction"
+                text="Run module test"
+                description="Run component tests written in Java or Scala">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift F10"/>
+        </action>
+        <action id="com.cambra.emtestrunner.FastRunModuleTestAction"
+                class="com.cambra.emtestrunner.FastRunModuleTestAction"
+                text="Run module test (fast)"
+                description="Run component tests written in Java or Scala, fast compile and run">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift F10"/>
+        </action>
+
+
+    </actions>
+</idea-plugin>

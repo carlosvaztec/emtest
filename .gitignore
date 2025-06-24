@@ -1,0 +1,86 @@
+### Gradle ###
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Gradle cache and wrapper (regenerated)
+.gradle/
+gradle-app.setting
+!gradle-wrapper.properties
+
+# Gradle build outputs
+/build/
+*/build/
+
+# Gradle daemon
+.gradle/daemon/
+.gradle/native/
+.gradle/wrapper/dists/
+
+### Kotlin ###
+# Compiled Kotlin files
+*.class
+
+# Kotlin build outputs
+/kotlin-js-store/
+/kotlin-js-store/**
+
+# Kotlin/Native
+*.kexe
+*.klib
+
+# Kotlin Multiplatform
+/.kotlin/
+/kotlin-js-store/
+
+### IntelliJ IDEA ###
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+.idea/gradle.xml
+.idea/misc.xml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries/
+.idea/shelf/
+.idea/caches/
+.idea/kotlinc.xml
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Kotlin plugin cache
+.idea/caches/build_file_checksums.ser
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+.intellijPlatform
