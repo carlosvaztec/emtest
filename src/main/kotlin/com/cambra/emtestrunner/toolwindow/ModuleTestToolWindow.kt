@@ -59,14 +59,16 @@ class ModuleTestToolWindow(private val project: Project) {
     private fun executeHotDeploySetup() {
         val settings = ModuleTestRunnerSettings.getInstance()
         val command = settings.hotDeploySetupCommand.replace("{NAMESPACE}", settings.namespace)
-        
-        // Show notification that setup is starting
-        showNotification(
-            "Hot Deploy Setup",
-            "Starting hot deploy setup...",
-            NotificationType.INFORMATION
-        )
-        
+
+        // Show debug notification that setup is starting (only if debug is enabled)
+        if (settings.enableDebugNotifications) {
+            showNotification(
+                "Debug: Hot Deploy Setup",
+                "Starting hot deploy setup...",
+                NotificationType.INFORMATION
+            )
+        }
+
         // Execute command in background
         ApplicationManager.getApplication().executeOnPooledThread {
             try {
