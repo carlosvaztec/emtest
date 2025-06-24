@@ -24,6 +24,7 @@ class ModuleTestRunnerSettings : PersistentStateComponent<ModuleTestRunnerSettin
     var namespace: String = ""
     var testModuleName: String = ""
     var enableAutoCopy: Boolean = true
+    var enableDebugNotifications: Boolean = false
 
     override fun getState(): ModuleTestRunnerSettings = this
     

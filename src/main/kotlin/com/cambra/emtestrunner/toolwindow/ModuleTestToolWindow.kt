@@ -10,14 +10,16 @@ import com.intellij.ui.components.JBPanel
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.JButton
+import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
 class ModuleTestToolWindow(private val project: Project) {
-    
+
     private val contentPanel = JBPanel<JBPanel<*>>(BorderLayout())
-    
+    private lateinit var debugCheckBox: JCheckBox
+
     init {
         setupUI()
     }
@@ -26,7 +28,7 @@ class ModuleTestToolWindow(private val project: Project) {
         // Title panel
         val titlePanel = JPanel(FlowLayout(FlowLayout.LEFT))
         titlePanel.add(JLabel("Module Test Runner"))
-        
+
         // Button panel
         val buttonPanel = JPanel(FlowLayout(FlowLayout.LEFT))
         val setupButton = JButton("Setup Hot Deploy")
@@ -34,10 +36,24 @@ class ModuleTestToolWindow(private val project: Project) {
             executeHotDeploySetup()
         }
         buttonPanel.add(setupButton)
-        
+
+        // Debug panel
+        val debugPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+        val settings = ModuleTestRunnerSettings.getInstance()
+        debugCheckBox = JCheckBox("Enable Debug Notifications", settings.enableDebugNotifications)
+        debugCheckBox.addActionListener {
+            settings.enableDebugNotifications = debugCheckBox.isSelected
+        }
+        debugPanel.add(debugCheckBox)
+
+        // Main panel to hold button and debug panels
+        val mainPanel = JPanel(BorderLayout())
+        mainPanel.add(buttonPanel, BorderLayout.NORTH)
+        mainPanel.add(debugPanel, BorderLayout.CENTER)
+
         // Add panels to main content
         contentPanel.add(titlePanel, BorderLayout.NORTH)
-        contentPanel.add(buttonPanel, BorderLayout.CENTER)
+        contentPanel.add(mainPanel, BorderLayout.CENTER)
     }
     
     private fun executeHotDeploySetup() {

@@ -31,7 +31,8 @@ class TestRunnerConfigurable : Configurable {
                settingsComponent?.removePackagePrefixText != settings.removePackagePrefix ||
                settingsComponent?.namespaceText != settings.namespace ||
                settingsComponent?.testModuleNameText != settings.testModuleName ||
-               settingsComponent?.enableAutoCopyChecked != settings.enableAutoCopy
+               settingsComponent?.enableAutoCopyChecked != settings.enableAutoCopy ||
+               settingsComponent?.enableDebugNotificationsChecked != settings.enableDebugNotifications
     }
     
     override fun apply() {
@@ -47,6 +48,7 @@ class TestRunnerConfigurable : Configurable {
             settings.namespace = it.namespaceText
             settings.testModuleName = it.testModuleNameText
             settings.enableAutoCopy = it.enableAutoCopyChecked
+            settings.enableDebugNotifications = it.enableDebugNotificationsChecked
         }
     }
     
@@ -63,6 +65,7 @@ class TestRunnerConfigurable : Configurable {
             it.namespaceText = settings.namespace
             it.testModuleNameText = settings.testModuleName
             it.enableAutoCopyChecked = settings.enableAutoCopy
+            it.enableDebugNotificationsChecked = settings.enableDebugNotifications
         }
     }
     
@@ -83,6 +86,7 @@ class TestRunnerSettingsComponent {
     private var namespaceField: Cell<com.intellij.ui.components.JBTextField>? = null
     private var testModuleNameField: Cell<com.intellij.ui.components.JBTextField>? = null
     private var enableAutoCopyField: Cell<com.intellij.ui.components.JBCheckBox>? = null
+    private var enableDebugNotificationsField: Cell<com.intellij.ui.components.JBCheckBox>? = null
 
     var methodCommandText: String
         get() = methodCommandField?.component?.text ?: ""
@@ -123,6 +127,10 @@ class TestRunnerSettingsComponent {
     var enableAutoCopyChecked: Boolean
         get() = enableAutoCopyField?.component?.isSelected ?: true
         set(value) { enableAutoCopyField?.component?.isSelected = value }
+
+    var enableDebugNotificationsChecked: Boolean
+        get() = enableDebugNotificationsField?.component?.isSelected ?: false
+        set(value) { enableDebugNotificationsField?.component?.isSelected = value }
 
     init {
         panel = panel {
@@ -195,6 +203,11 @@ class TestRunnerSettingsComponent {
                 row {
                     enableAutoCopyField = checkBox("Enable Auto-Copy")
                         .comment("Automatically track the current class being edited and copy compiled classes after successful compilation")
+                }
+
+                row {
+                    enableDebugNotificationsField = checkBox("Enable Debug Notifications")
+                        .comment("Show debug notifications for copy command placeholders and execution details")
                 }
                 
                 row {

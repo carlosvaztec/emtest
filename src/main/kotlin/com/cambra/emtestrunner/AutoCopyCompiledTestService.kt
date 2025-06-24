@@ -123,13 +123,16 @@ class TestClassTracker(private val project: Project) : Disposable {
                                         val primaryClass = psiFile.classes.find { it.name == fileName }
                                         if (primaryClass != null) {
                                             setCurrentTestClass(primaryClass)
-                                            ApplicationManager.getApplication().invokeLater {
-                                                showNotification(
-                                                    project,
-                                                    "Auto-Track Success",
-                                                    "Now tracking Java test class: ${primaryClass.name}",
-                                                    NotificationType.INFORMATION
-                                                )
+                                            val settings = com.cambra.emtestrunner.settings.ModuleTestRunnerSettings.getInstance()
+                                            if (settings.enableDebugNotifications) {
+                                                ApplicationManager.getApplication().invokeLater {
+                                                    showNotification(
+                                                        project,
+                                                        "Debug: Auto-Track Success",
+                                                        "Now tracking Java test class: ${primaryClass.name}",
+                                                        NotificationType.INFORMATION
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -139,13 +142,16 @@ class TestClassTracker(private val project: Project) : Disposable {
 
                                         if (scalaClass != null) {
                                             setCurrentScalaClass(scalaClass)
-                                            ApplicationManager.getApplication().invokeLater {
-                                                showNotification(
-                                                    project,
-                                                    "Auto-Track Success",
-                                                    "Now tracking Scala test class: ${getElementName(scalaClass)}",
-                                                    NotificationType.INFORMATION
-                                                )
+                                            val settings = com.cambra.emtestrunner.settings.ModuleTestRunnerSettings.getInstance()
+                                            if (settings.enableDebugNotifications) {
+                                                ApplicationManager.getApplication().invokeLater {
+                                                    showNotification(
+                                                        project,
+                                                        "Debug: Auto-Track Success",
+                                                        "Now tracking Scala test class: ${getElementName(scalaClass)}",
+                                                        NotificationType.INFORMATION
+                                                    )
+                                                }
                                             }
                                         } else {
                                             // Show error message about Scala plugin requirement
@@ -403,24 +409,27 @@ class TestClassTracker(private val project: Project) : Disposable {
                     .replace("{PACKAGE_PATH}", packagePath)
                     .replace("{NAMESPACE}", settings.namespace)
 
-                // Show debug notification with placeholder values
-                ApplicationManager.getApplication().invokeLater {
-                    showNotification(
-                        project,
-                        "Debug: Copy Command Placeholders",
-                        "Package: ${psiInfo.packageName}\nPACKAGE_PATH: $packagePath\nCOMPILED_CLASS_PATH: $compiledFilePath\nClass: $className",
-                        NotificationType.INFORMATION
-                    )
-                }
+                // Show debug notifications only if enabled
+                if (settings.enableDebugNotifications) {
+                    // Show debug notification with placeholder values
+                    ApplicationManager.getApplication().invokeLater {
+                        showNotification(
+                            project,
+                            "Debug: Copy Command Placeholders",
+                            "Package: ${psiInfo.packageName}\nPACKAGE_PATH: $packagePath\nCOMPILED_CLASS_PATH: $compiledFilePath\nClass: $className",
+                            NotificationType.INFORMATION
+                        )
+                    }
 
-                // Show debug notification with final copy command
-                ApplicationManager.getApplication().invokeLater {
-                    showNotification(
-                        project,
-                        "Debug: Final Copy Command",
-                        "Command after replacements:\n$copyCmd",
-                        NotificationType.INFORMATION
-                    )
+                    // Show debug notification with final copy command
+                    ApplicationManager.getApplication().invokeLater {
+                        showNotification(
+                            project,
+                            "Debug: Final Copy Command",
+                            "Command after replacements:\n$copyCmd",
+                            NotificationType.INFORMATION
+                        )
+                    }
                 }
 
                 // Run the command in background
