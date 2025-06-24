@@ -1,5 +1,6 @@
 package com.cambra.emtestrunner
 
+import com.cambra.emtestrunner.settings.ModuleTestRunnerSettings
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -321,10 +322,23 @@ class TestClassTracker(private val project: Project) : Disposable {
      */
     private fun findScalaClassByName(psiFile: PsiFile, className: String): PsiElement? {
         try {
-            val children = psiFile.children
-            return children.find { child ->
-                isScalaClass(child) && getElementName(child) == className
+            // Search recursively through the PSI tree
+            fun findScalaClassRecursively(element: PsiElement): PsiElement? {
+                // Check if current element is the class we're looking for
+                if (isScalaClass(element) && getElementName(element) == className) {
+                    return element
+                }
+
+                // Recursively search children
+                for (child in element.children) {
+                    val found = findScalaClassRecursively(child)
+                    if (found != null) return found
+                }
+
+                return null
             }
+
+            return findScalaClassRecursively(psiFile)
         } catch (e: Exception) {
             return null
         }
@@ -383,9 +397,31 @@ class TestClassTracker(private val project: Project) : Disposable {
                     .getService(com.cambra.emtestrunner.settings.ModuleTestRunnerSettings::class.java)
 
                 // Replace placeholders in the copy command
+                val packagePath = psiInfo.packageName.replace('.', '/')
                 val copyCmd = settings.copyCommand
                     .replace("{COMPILED_CLASS_PATH}", compiledFilePath)
+                    .replace("{PACKAGE_PATH}", packagePath)
                     .replace("{NAMESPACE}", settings.namespace)
+
+                // Show debug notification with placeholder values
+                ApplicationManager.getApplication().invokeLater {
+                    showNotification(
+                        project,
+                        "Debug: Copy Command Placeholders",
+                        "Package: ${psiInfo.packageName}\nPACKAGE_PATH: $packagePath\nCOMPILED_CLASS_PATH: $compiledFilePath\nClass: $className",
+                        NotificationType.INFORMATION
+                    )
+                }
+
+                // Show debug notification with final copy command
+                ApplicationManager.getApplication().invokeLater {
+                    showNotification(
+                        project,
+                        "Debug: Final Copy Command",
+                        "Command after replacements:\n$copyCmd",
+                        NotificationType.INFORMATION
+                    )
+                }
 
                 // Run the command in background
                 runCommandInBackground(project, copyCmd, compiledFilePath, className)
@@ -462,10 +498,13 @@ class TestClassTracker(private val project: Project) : Disposable {
         }
 
         // Check both test-classes and classes directories
+        val settings = ModuleTestRunnerSettings.getInstance()
         val possibleDirs = listOf(
-            findBuildOutputDir(psiInfo.projectBasePath, "target/test-classes"),
-            findBuildOutputDir(psiInfo.projectBasePath, "target/classes")
+            findBuildOutputDir(psiInfo.projectBasePath, "target/test-classes", settings.testModuleName),
+            findBuildOutputDir(psiInfo.projectBasePath, "target/classes", settings.testModuleName)
         ).filterNotNull()
+
+
 
         if (possibleDirs.isEmpty()) {
             return null // Will trigger error notification
@@ -477,14 +516,21 @@ class TestClassTracker(private val project: Project) : Disposable {
                 val classPath = "$outputDir${java.io.File.separator}$packagePath${java.io.File.separator}${psiInfo.className}.class"
                 val objectPath = "$outputDir${java.io.File.separator}$packagePath${java.io.File.separator}${psiInfo.className}$$.class"
 
+
+
                 if (java.io.File(objectPath).exists()) return objectPath
                 if (java.io.File(classPath).exists()) return classPath
             } else {
                 // For Java classes
                 val classPath = "$outputDir${java.io.File.separator}$packagePath${java.io.File.separator}${psiInfo.className}.class"
+
+
+
                 if (java.io.File(classPath).exists()) return classPath
             }
         }
+
+
 
         return null // No compiled class found
     }
@@ -498,7 +544,8 @@ class TestClassTracker(private val project: Project) : Disposable {
         val module = ModuleUtil.findModuleForFile(virtualFile, project) ?: return "No module found"
 
         // For Maven, we only want to check the target/test-classes directory
-        val mavenTestOutputDir = findBuildOutputDir(project.basePath, "target/test-classes")
+        val settings = ModuleTestRunnerSettings.getInstance()
+        val mavenTestOutputDir = findBuildOutputDir(project.basePath, "target/test-classes", settings.testModuleName)
 
         // If Maven test directory doesn't exist, return a message
         if (mavenTestOutputDir == null) {
@@ -544,7 +591,8 @@ class TestClassTracker(private val project: Project) : Disposable {
             val module = ModuleUtil.findModuleForFile(virtualFile, project) ?: return "No module found"
 
             // For Maven, we only want to check the target/test-classes directory for test classes
-            val mavenTestOutputDir = findBuildOutputDir(project.basePath, "target/test-classes")
+            val settings = ModuleTestRunnerSettings.getInstance()
+            val mavenTestOutputDir = findBuildOutputDir(project.basePath, "target/test-classes", settings.testModuleName)
 
             // If Maven test directory doesn't exist, return a message
             if (mavenTestOutputDir == null) {
@@ -577,8 +625,14 @@ class TestClassTracker(private val project: Project) : Disposable {
     }
 
     // Helper method to find build output directory for Maven modules
-    private fun findBuildOutputDir(basePath: String?, relativePath: String): String? {
+    private fun findBuildOutputDir(basePath: String?, relativePath: String, testModuleName: String = ""): String? {
         if (basePath == null) return null
+
+        // If testModuleName is specified, try that specific module first
+        if (testModuleName.isNotEmpty()) {
+            val moduleSpecificPath = Paths.get(basePath, testModuleName, relativePath).toString()
+            if (java.io.File(moduleSpecificPath).exists()) return moduleSpecificPath
+        }
 
         // First, try the direct path (for single module projects)
         val directPath = Paths.get(basePath, relativePath).toString()

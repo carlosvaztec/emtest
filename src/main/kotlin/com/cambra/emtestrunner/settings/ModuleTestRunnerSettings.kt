@@ -21,6 +21,7 @@ class ModuleTestRunnerSettings : PersistentStateComponent<ModuleTestRunnerSettin
     var copyCommand: String = "echo \"Copying {COMPILED_CLASS_PATH} to execution host\""
     var removePackagePrefix: String = ""
     var namespace: String = ""
+    var testModuleName: String = ""
     var enableAutoCopy: Boolean = true
 
     override fun getState(): ModuleTestRunnerSettings = this

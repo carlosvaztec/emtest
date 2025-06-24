@@ -65,6 +65,7 @@ Use these placeholders in your command templates:
 - `{CLASS_NAME}`: Full class name (format: `package.className`)
 - `{NAMESPACE}`: Custom namespace value from settings
 - `{COMPILED_CLASS_PATH}`: Path to compiled class file (for copy command)
+- `{PACKAGE_PATH}`: Package name with dots replaced by slashes (e.g., `a/b/c/d` for package `a.b.c.d`)
 
 
 ## Usage

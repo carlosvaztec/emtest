@@ -29,6 +29,7 @@ class TestRunnerConfigurable : Configurable {
                settingsComponent?.copyCommandText != settings.copyCommand ||
                settingsComponent?.removePackagePrefixText != settings.removePackagePrefix ||
                settingsComponent?.namespaceText != settings.namespace ||
+               settingsComponent?.testModuleNameText != settings.testModuleName ||
                settingsComponent?.enableAutoCopyChecked != settings.enableAutoCopy
     }
     
@@ -42,6 +43,7 @@ class TestRunnerConfigurable : Configurable {
             settings.copyCommand = it.copyCommandText
             settings.removePackagePrefix = it.removePackagePrefixText
             settings.namespace = it.namespaceText
+            settings.testModuleName = it.testModuleNameText
             settings.enableAutoCopy = it.enableAutoCopyChecked
         }
     }
@@ -56,6 +58,7 @@ class TestRunnerConfigurable : Configurable {
             it.copyCommandText = settings.copyCommand
             it.removePackagePrefixText = settings.removePackagePrefix
             it.namespaceText = settings.namespace
+            it.testModuleNameText = settings.testModuleName
             it.enableAutoCopyChecked = settings.enableAutoCopy
         }
     }
@@ -74,6 +77,7 @@ class TestRunnerSettingsComponent {
     private var copyCommandField: Cell<com.intellij.ui.components.JBTextArea>? = null
     private var removePackagePrefixField: Cell<com.intellij.ui.components.JBTextField>? = null
     private var namespaceField: Cell<com.intellij.ui.components.JBTextField>? = null
+    private var testModuleNameField: Cell<com.intellij.ui.components.JBTextField>? = null
     private var enableAutoCopyField: Cell<com.intellij.ui.components.JBCheckBox>? = null
 
     var methodCommandText: String
@@ -103,6 +107,10 @@ class TestRunnerSettingsComponent {
     var namespaceText: String
         get() = namespaceField?.component?.text ?: ""
         set(value) { namespaceField?.component?.text = value }
+
+    var testModuleNameText: String
+        get() = testModuleNameField?.component?.text ?: ""
+        set(value) { testModuleNameField?.component?.text = value }
 
     var enableAutoCopyChecked: Boolean
         get() = enableAutoCopyField?.component?.isSelected ?: true
@@ -147,7 +155,7 @@ class TestRunnerSettingsComponent {
                 row("Copy Command:") {
                     copyCommandField = textArea()
                         .rows(3)
-                        .comment("Command to copy compiled class files. Use {COMPILED_CLASS_PATH} placeholder.")
+                        .comment("Command to copy compiled class files. Use {COMPILED_CLASS_PATH} and {PACKAGE_PATH} placeholders.")
                         .align(AlignX.FILL)
                 }
 
@@ -160,6 +168,12 @@ class TestRunnerSettingsComponent {
                 row("Namespace:") {
                     namespaceField = textField()
                         .comment("Namespace value to use in commands (e.g., 'dev', 'staging', 'prod')")
+                        .align(AlignX.FILL)
+                }
+
+                row("Test Module Name:") {
+                    testModuleNameField = textField()
+                        .comment("Module name containing test classes (e.g., 'my-test-module'). Leave empty to use project root.")
                         .align(AlignX.FILL)
                 }
 
@@ -183,6 +197,9 @@ class TestRunnerSettingsComponent {
                 }
                 row {
                     label("• {COMPILED_CLASS_PATH} - Full path to the compiled .class file")
+                }
+                row {
+                    label("• {PACKAGE_PATH} - Package name with dots replaced by slashes (e.g., com/example/package)")
                 }
 
                 row {
