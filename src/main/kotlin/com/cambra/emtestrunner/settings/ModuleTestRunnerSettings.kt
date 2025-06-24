@@ -19,6 +19,7 @@ class ModuleTestRunnerSettings : PersistentStateComponent<ModuleTestRunnerSettin
     var runMethodCommand: String = "echo \"Running method: {METHOD_NAME}\""
     var runClassCommand: String = "echo \"Running class: {CLASS_NAME}\""
     var copyCommand: String = "echo \"Copying {COMPILED_CLASS_PATH} to execution host\""
+    var hotDeploySetupCommand: String = "echo \"Setting up hot deploy environment\""
     var removePackagePrefix: String = ""
     var namespace: String = ""
     var testModuleName: String = ""

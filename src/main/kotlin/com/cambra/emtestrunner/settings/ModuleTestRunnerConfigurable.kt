@@ -27,6 +27,7 @@ class TestRunnerConfigurable : Configurable {
                settingsComponent?.runMethodCommandText != settings.runMethodCommand ||
                settingsComponent?.runClassCommandText != settings.runClassCommand ||
                settingsComponent?.copyCommandText != settings.copyCommand ||
+               settingsComponent?.hotDeploySetupCommandText != settings.hotDeploySetupCommand ||
                settingsComponent?.removePackagePrefixText != settings.removePackagePrefix ||
                settingsComponent?.namespaceText != settings.namespace ||
                settingsComponent?.testModuleNameText != settings.testModuleName ||
@@ -41,6 +42,7 @@ class TestRunnerConfigurable : Configurable {
             settings.runMethodCommand = it.runMethodCommandText
             settings.runClassCommand = it.runClassCommandText
             settings.copyCommand = it.copyCommandText
+            settings.hotDeploySetupCommand = it.hotDeploySetupCommandText
             settings.removePackagePrefix = it.removePackagePrefixText
             settings.namespace = it.namespaceText
             settings.testModuleName = it.testModuleNameText
@@ -56,6 +58,7 @@ class TestRunnerConfigurable : Configurable {
             it.runMethodCommandText = settings.runMethodCommand
             it.runClassCommandText = settings.runClassCommand
             it.copyCommandText = settings.copyCommand
+            it.hotDeploySetupCommandText = settings.hotDeploySetupCommand
             it.removePackagePrefixText = settings.removePackagePrefix
             it.namespaceText = settings.namespace
             it.testModuleNameText = settings.testModuleName
@@ -75,6 +78,7 @@ class TestRunnerSettingsComponent {
     private var runMethodCommandField: Cell<com.intellij.ui.components.JBTextArea>? = null
     private var runClassCommandField: Cell<com.intellij.ui.components.JBTextArea>? = null
     private var copyCommandField: Cell<com.intellij.ui.components.JBTextArea>? = null
+    private var hotDeploySetupCommandField: Cell<com.intellij.ui.components.JBTextArea>? = null
     private var removePackagePrefixField: Cell<com.intellij.ui.components.JBTextField>? = null
     private var namespaceField: Cell<com.intellij.ui.components.JBTextField>? = null
     private var testModuleNameField: Cell<com.intellij.ui.components.JBTextField>? = null
@@ -99,6 +103,10 @@ class TestRunnerSettingsComponent {
     var copyCommandText: String
         get() = copyCommandField?.component?.text ?: ""
         set(value) { copyCommandField?.component?.text = value }
+
+    var hotDeploySetupCommandText: String
+        get() = hotDeploySetupCommandField?.component?.text ?: ""
+        set(value) { hotDeploySetupCommandField?.component?.text = value }
 
     var removePackagePrefixText: String
         get() = removePackagePrefixField?.component?.text ?: ""
@@ -156,6 +164,13 @@ class TestRunnerSettingsComponent {
                     copyCommandField = textArea()
                         .rows(3)
                         .comment("Command to copy compiled class files. Use {COMPILED_CLASS_PATH} and {PACKAGE_PATH} placeholders.")
+                        .align(AlignX.FILL)
+                }
+
+                row("Hot Deploy Setup Command:") {
+                    hotDeploySetupCommandField = textArea()
+                        .rows(3)
+                        .comment("Command to set up hot deploy environment. Use {NAMESPACE} placeholder.")
                         .align(AlignX.FILL)
                 }
 

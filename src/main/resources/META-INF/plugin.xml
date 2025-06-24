@@ -59,6 +59,10 @@
             displayName="Module Test Runner"/>
         <applicationService serviceImplementation="com.cambra.emtestrunner.settings.ModuleTestRunnerSettings"/>
         <postStartupActivity implementation="com.cambra.emtestrunner.PluginStartupActivity"/>
+        <toolWindow id="ModuleTest"
+                    displayName="ModuleTest"
+                    anchor="bottom"
+                    factoryClass="com.cambra.emtestrunner.toolwindow.ModuleTestToolWindowFactory"/>
     </extensions>
 
     <actions>
