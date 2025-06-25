@@ -1,5 +1,7 @@
 # Module Test Runner Plugin
 
+*Experimenting with AI Agent, created in 18h using Augment agent.*
+
 A configurable IntelliJ IDEA plugin that allows you to run custom commands for Java and Scala test methods and classes. 
 Perfect for Maven, Gradle, SBT, or custom test execution workflows.
 
